@@ -1,0 +1,27 @@
+{
+  "name": "assignment-indexeddb",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@11.10.0",
+  "type": "module",
+  "scripts": {
+    "dev": "portless run --force pnpm run dev:old",
+    "dev:old": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/node": "^24.13.2",
+    "portless": "^0.14.0",
+    "sass": "^1.101.0",
+    "tailwindcss": "^4.3.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.12",
+    "vite-plugin-pwa": "^1.3.0"
+  },
+  "dependencies": {
+    "@awesome.me/webawesome": "^3.9.0",
+    "dexie": "^4.4.4"
+  }
+}

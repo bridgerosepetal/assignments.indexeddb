@@ -1,0 +1,44 @@
+<section id="center">
+  <div class="users1">
+    <span>Задание 1</span>
+    <h1>Пользователи</h1>
+    <div class="users1__split">
+      <form
+        class="flex flex-col gap-y-[16px]"
+        id="form-add-user"
+      >
+        <div class="flex flex-col gap-[12px]">
+          <wa-input
+            label="Имя"
+            name="name"
+            type="text"
+            required
+            minlength="2"
+            autocomplete="off"
+            with-clear
+          ></wa-input>
+          <wa-input
+            label="E-Mail"
+            name="email"
+            type="email"
+            required
+            autocomplete="off"
+            with-clear
+          ></wa-input>
+        </div>
+        <wa-button type="submit">Добавить</wa-button>
+      </form>
+      <div
+        class="users1__wrapper"
+        data-users-wrapper
+        disabled
+      >
+        <wa-spinner></wa-spinner>
+        <div
+          class="users1__accordion-wrapper"
+          data-users-accordion-wrapper
+        ></div>
+      </div>
+    </div>
+  </div>
+</section>
