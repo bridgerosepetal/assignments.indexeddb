@@ -1,7 +1,7 @@
 import { renderHomePage } from '../../pages/home'
 import { renderUsersPage } from '../../pages/users'
 import { renderProductsPage } from '../../pages/products'
-import { renderCommercePage } from '../../pages/commerce'
+import { renderCommerce2Page } from '../../pages/commerce'
 
 type Route = {
   path: string
@@ -11,25 +11,25 @@ type Route = {
 const routes: Route[] = [
   {
     path: '/',
-    render: renderHomePage,
+    render: renderHomePage
   },
   {
     path: '/users',
-    render: renderUsersPage,
+    render: renderUsersPage
   },
   {
-	  path: '/products',
-	  render: renderProductsPage
+    path: '/products',
+    render: renderProductsPage
   },
   {
-	  path: '/commerce',
-	  render: renderCommercePage
-  },
+    path: '/commerce',
+    render: renderCommerce2Page
+  }
 ]
 
 export function initRouter(root: HTMLDivElement) {
   const renderRoute = () => {
-    const route = routes.find((item) => item.path === window.location.pathname)
+    const route = routes.find(item => item.path === window.location.pathname)
 
     if (route) {
       route.render(root)
@@ -46,7 +46,7 @@ export function initRouter(root: HTMLDivElement) {
 `
   }
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener('click', event => {
     const target = event.target
 
     if (!(target instanceof Element)) {

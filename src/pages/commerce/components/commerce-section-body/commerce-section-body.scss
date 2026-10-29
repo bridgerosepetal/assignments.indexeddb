@@ -1,0 +1,17 @@
+@use '../../mixins' as *;
+
+:host {
+  .commerce-section-body {
+    @include bevel-border;
+    padding: 12px;
+    background-color: #ffffe3;
+
+    &__inner {
+      margin-top: 12px;
+    }
+
+    &__footer {
+      margin-top: 12px;
+    }
+  }
+}

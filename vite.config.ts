@@ -4,10 +4,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   root: 'src/app',
+  oxc: {
+    decorator: { legacy: true },
+  },
   publicDir: '../../public',
   plugins: [tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate', // Automatically updates the service worker
+      registerType: 'autoUpdate',
       injectRegister: 'auto',
       manifest: {
         name: 'My Awesome PWA',

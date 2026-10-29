@@ -14,6 +14,9 @@ importers:
       dexie:
         specifier: ^4.4.4
         version: 4.4.4
+      lit:
+        specifier: ^3.3.3
+        version: 3.3.3
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.3.1

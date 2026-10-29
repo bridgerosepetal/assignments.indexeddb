@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  grid-column: 1 / -1;
+
+  .commerce-statistics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+
+    &__column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__field {
+      display: flex;
+      gap: 8px;
+    }
+
+    &__list {
+      padding-left: 24px;
+    }
+  }
+}

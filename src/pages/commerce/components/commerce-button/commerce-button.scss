@@ -1,0 +1,21 @@
+@use '../../mixins' as *;
+
+:host {
+  display: inline-block;
+
+  .commerce-button {
+    @include bevel-border(black);
+    background-color: #c3c3c3;
+    padding: 4px 12px;
+    width: 100%;
+
+    &:hover {
+      background-color: #e1e1e1;
+    }
+
+    &:active {
+      background-color: #fff;
+      border-color: #fff;
+    }
+  }
+}

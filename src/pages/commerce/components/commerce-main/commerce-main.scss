@@ -1,0 +1,33 @@
+:host {
+  .commerce-main {
+    display: flex;
+    flex-direction: column;
+    padding-inline: 200px;
+    background:
+      url('../../assets/images/grass@2x-desktop.png') center bottom / 100% auto no-repeat,
+      linear-gradient(180deg, #00ffff, #008282);
+    height: 100vh;
+
+    &__body {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    &__form {
+      label.field {
+        display: flex;
+        gap: 8px;
+      }
+      .error {
+        display: flex;
+        color: #ff1e00;
+        background-color: #fff;
+      }
+      commerce-button.submit {
+        margin-top: 8px;
+      }
+    }
+  }
+}

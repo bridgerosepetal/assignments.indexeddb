@@ -1,0 +1,17 @@
+:host {
+  .commerce-text {
+    &_variant {
+      &-primary {
+        font-family: var(--font-main);
+        font-size: 14px;
+        font-weight: 400;
+      }
+      &-16 {
+        font-size: 16px;
+      }
+      &-12 {
+        font-size: 12px;
+      }
+    }
+  }
+}

@@ -7,6 +7,8 @@ import '@awesome.me/webawesome/dist/components/button-group/button-group.js'
 import '@awesome.me/webawesome/dist/components/spinner/spinner.js'
 import markup from './index.html?raw'
 import './index.scss'
+import { getUsers } from '../commerce/api'
+import { escapeHtml } from '../../shared/escapeHtml'
 
 type WaInputElement = HTMLElement & {
   value: string
@@ -93,8 +95,6 @@ function setupDB(db: IDBDatabase) {
 }
 
 async function run() {
-  await new Promise(resolve => setTimeout(resolve, 500))
-
   const DB_VERSION = 1
   const request = indexedDB.open('UserDatabase', DB_VERSION)
   let db: IDBDatabase
@@ -159,6 +159,14 @@ async function run() {
   request.onerror = function () {
     console.error('Ошибка при открытии базы данных', request.error)
   }
+
+  document.querySelector<WaInputElement>('wa-input[data-search]')?.addEventListener('input', async event => {
+    const users = await getAllUsers(db)
+    if (!event.target) return
+    const query = (event.target as WaInputElement).value.trim().toLowerCase()
+    const filtered = users.filter(user => user.name.toLowerCase().includes(query))
+    updateListUsers(db, filtered)
+  })
 }
 
 function addUser(db: IDBDatabase, user: Omit<IUser, 'id'>): Promise<void> {
@@ -167,12 +175,12 @@ function addUser(db: IDBDatabase, user: Omit<IUser, 'id'>): Promise<void> {
     const store = transaction.objectStore('users')
     const request = store.add(user)
 
-    request.onsuccess = () => {
+    transaction.oncomplete = () => {
       console.log('Пользователь добавлен:', user)
       resolve()
     }
 
-    request.onerror = () => {
+    transaction.onerror = () => {
       reject(request.error)
     }
   })
@@ -185,7 +193,7 @@ function getAllUsers(db: IDBDatabase): Promise<IUser[]> {
     const objectStore = transaction.objectStore('users')
     const request = objectStore.openCursor()
 
-    request.onsuccess = function () {
+    request.onsuccess = () => {
       const cursor = request.result
 
       if (!cursor) {
@@ -197,24 +205,26 @@ function getAllUsers(db: IDBDatabase): Promise<IUser[]> {
       cursor.continue()
     }
 
-    request.onerror = function () {
+    request.onerror = () => {
       reject(request.error)
     }
   })
 }
 
-function deleteUser(db: IDBDatabase, id: number) {
-  const transaction = db.transaction(['users'], 'readwrite')
-  const objectStore = transaction.objectStore('users')
-  const request = objectStore.delete(id)
+async function deleteUser(db: IDBDatabase, id: number): Promise<true | Error> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['users'], 'readwrite')
+    const objectStore = transaction.objectStore('users')
+    const request = objectStore.delete(id)
 
-  request.onsuccess = function () {
-    console.log('Пользователь удален с ID:', id)
-  }
+    transaction.oncomplete = function () {
+      resolve(true)
+    }
 
-  request.onerror = function () {
-    console.error('Ошибка при удалении пользователя:', request.error)
-  }
+    transaction.onerror = function () {
+      reject(request.error)
+    }
+  })
 }
 
 function updateUser(db: IDBDatabase, user: IUser): Promise<void> {
@@ -223,19 +233,20 @@ function updateUser(db: IDBDatabase, user: IUser): Promise<void> {
     const store = transaction.objectStore('users')
     const request = store.put(user)
 
-    request.onsuccess = () => {
+    transaction.oncomplete = () => {
       console.log('Пользователь обновлен:', user)
       resolve()
     }
 
-    request.onerror = () => {
+    transaction.onerror = () => {
       reject(request.error)
     }
   })
 }
 
-async function updateListUsers(db: IDBDatabase) {
-  const users = await getAllUsers(db)
+async function updateListUsers(db: IDBDatabase, visibleUsers: IUser[] | null = null) {
+  const query = (document.querySelector<WaInputElement>('wa-input[data-search]')?.value ?? '').trim().toLowerCase()
+  const users = (await getAllUsers(db)).filter(user => user.name.toLowerCase().includes(query))
   const divUsers = document.querySelector<HTMLDivElement>('[data-users-wrapper]')
   if (!divUsers) return
   divUsers.innerHTML = 'Пользователи не найдены'
@@ -253,7 +264,7 @@ async function updateListUsers(db: IDBDatabase) {
             user =>
               `<wa-accordion-item data-list-users-user>
 						<div slot="label" class="wa-split">
-				<span data-user-label-name>${user.name}</span>
+				<span data-user-label-name>${escapeHtml(user.name)}</span>
 
 				<wa-badge
 					appearance="filled-outlined"
@@ -262,14 +273,14 @@ async function updateListUsers(db: IDBDatabase) {
 					style="font-size: var(--wa-font-size-xs);"
 				>
 					<wa-icon slot="start" name="envelope"></wa-icon>
-					<span data-user-label-email>${user.email}</span>
+					<span data-user-label-email>${escapeHtml(user.email)}</span>
 				</wa-badge>
 			</div>
 			<form id="form-user-${user.id}">
 				<div class="flex flex-col gap-1">
 					<div class="flex flex-col gap-[4px]">
-						<wa-input class="users__update-input" name="name" required minlength="2" disabled value="${user.name}"></wa-input>
-						<wa-input class="users__update-input" name="email" type="email" required disabled value="${user.email}"></wa-input>
+						<wa-input class="users__update-input" name="name" required minlength="2" disabled value="${escapeHtml(user.name)}"></wa-input>
+						<wa-input class="users__update-input" name="email" type="email" required disabled value="${escapeHtml(user.email)}"></wa-input>
 					</div>
 				</div>
 				<div class="mt-2 flex justify-between">

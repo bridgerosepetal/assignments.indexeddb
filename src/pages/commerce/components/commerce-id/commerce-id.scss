@@ -1,0 +1,27 @@
+@use '../../mixins' as *;
+
+:host {
+  .commerce-id {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #c3c3c3;
+
+    @include bevel-border;
+
+    &_variant {
+      &-horizontal {
+        padding: 8px 18px;
+        height: 32px;
+      }
+
+      &-vertical {
+        width: 56px;
+        writing-mode: sideways-lr;
+        text-orientation: sideways-right;
+        letter-spacing: 2px;
+        padding: 18px 8px;
+      }
+    }
+  }
+}

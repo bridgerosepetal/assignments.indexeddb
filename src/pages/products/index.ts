@@ -5,6 +5,7 @@ import '@awesome.me/webawesome/dist/components/spinner/spinner.js'
 import WaInput from '@awesome.me/webawesome/dist/components/input/input.js'
 import WaButton from '@awesome.me/webawesome/dist/components/button/button.js'
 import Dexie from 'dexie'
+import { escapeHtml } from '../../shared/escapeHtml'
 // #endregion
 
 // #region Constants
@@ -35,8 +36,10 @@ async function alreadyHasData(db: Dexie): Promise<boolean> {
 }
 
 async function syncFromAPI(db: Dexie) {
+  ;(window as any).mydata = { new: 0, changed: 0 }
   try {
     const response = await fetch('https://fakestoreapi.com/products')
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const data = await response.json()
     const products = data
 
@@ -47,13 +50,48 @@ async function syncFromAPI(db: Dexie) {
       price: product.price
     }))
     const productsTable = db.table('products')
+    const oldProducts = await productsTable.toArray()
+    function getChangedIds(oldProducts: any[], newProducts: any[]): number[] {
+      return newProducts
+        .filter(newProduct => {
+          const oldProduct = oldProducts.find(old => old.id === newProduct.id)
+          return (
+            !oldProduct ||
+            oldProduct.title !== newProduct.title ||
+            oldProduct.category !== newProduct.category ||
+            oldProduct.price !== newProduct.price
+          )
+        })
+        .map(product => product.id)
+    }
+
+    const changedIds = getChangedIds(oldProducts, productsForDB)
+    const newProducts = productsForDB.filter((product: any) => !oldProducts.some(old => old.id === product.id))
+    ;(window as any).mydata = {
+      new: newProducts.length,
+      changed: changedIds.length - newProducts.length
+    }
+    const removedIds = oldProducts
+      .filter(old => !productsForDB.some((product: any) => product.id === old.id))
+      .map(old => old.id)
+
     await db.transaction('rw', productsTable, async () => {
-      await productsTable.clear()
-      await productsTable.bulkPut(productsForDB)
+      await productsTable.bulkDelete(removedIds)
+      await productsTable.bulkPut(productsForDB.filter((product: any) => changedIds.includes(product.id)))
     })
+    window.alert(`Новых: ${(window as any).mydata.new}, изменено: ${(window as any).mydata.changed}`)
     return products
   } catch (error) {
     console.error('Синхронизация с Fake Store API не вышла', error)
+    const message = navigator.onLine
+      ? 'Не удалось загрузить товары, ошибка API. Попробуйте позже.'
+      : 'Нет сети. Не удалось загрузить товары.'
+    const root = document.querySelector('[data-root]')
+    if (root && !root.querySelector('.table')) {
+      root.innerHTML = `<div class="spinny">${message}</div>`
+    } else {
+      window.alert(message)
+    }
     return null
   }
 }
@@ -81,9 +119,9 @@ function renderTable(products: any[]) {
           .map(
             product => `
 					<tr>
-						<td>${product.title}</td>
+						<td>${escapeHtml(product.title)}</td>
 						<td>
-							<wa-button data-category-button="${product.category}">${product.category}</wa-button>
+							<wa-button data-category-button="${escapeHtml(product.category)}">${escapeHtml(product.category)}</wa-button>
 						</td>
 						<td>$${product.price}</td>
 					</tr>
@@ -100,12 +138,35 @@ function hideSpinny() {
   spinny?.remove()
 }
 
+let query = ''
+let category = ''
+let priceSort = ''
+
+async function showProducts(db: Dexie) {
+  let products = await db.table('products').toArray()
+
+  if (category) {
+    products = products.filter(product => product.category === category)
+  }
+  if (query) {
+    products = products.filter(product => product.title.toLowerCase().includes(query))
+  }
+  if (priceSort === 'asc') {
+    products.sort((a, b) => a.price - b.price)
+  }
+  if (priceSort === 'desc') {
+    products.sort((a, b) => b.price - a.price)
+  }
+
+  renderTable(products)
+}
+
 function handleRefreshButtonClick(element: Element | null, db: Dexie) {
   if (element === null) return
   element.addEventListener('click', async () => {
     const products = await syncFromAPI(db)
     if (products) {
-      renderTable(products)
+      await showProducts(db)
       window.alert('Успешно обновлено!')
     }
   })
@@ -115,13 +176,10 @@ function handleRefreshButtonClick(element: Element | null, db: Dexie) {
  * The main function
  */
 async function run() {
-  await new Promise(resolve => setTimeout(resolve, 1000 - Math.random() * 1000))
-
   const db = openDatabase()
 
   if (await alreadyHasData(db)) {
-    const products = await db.table('products').toArray()
-    renderTable(products)
+    await showProducts(db)
   }
 
   const refreshButton = document.querySelector('[data-button-refresh]')
@@ -130,16 +188,8 @@ async function run() {
 
   document.querySelector<WaInput>('[data-name-search]')?.addEventListener('input', async event => {
     if (event.target instanceof WaInput) {
-      const query = event.target.value?.trim().toLowerCase()
-      if (!query) {
-        const products = await db.table('products').toArray()
-        renderTable(products)
-        return
-      }
-
-      const products = await db.table('products').where('title').startsWithIgnoreCase(query).toArray()
-
-      renderTable(products)
+      query = event.target.value?.trim().toLowerCase() ?? ''
+      await showProducts(db)
     }
   })
   document.querySelector('[data-root]')?.addEventListener('click', async event => {
@@ -147,42 +197,28 @@ async function run() {
 
     if (!button) return
 
-    const category = button.dataset.categoryButton
-    const products = await db.table('products').where('category').equals(category!).toArray()
-
-    renderTable(products)
+    category = button.dataset.categoryButton ?? ''
+    await showProducts(db)
   })
   document.querySelector('[data-root]')?.addEventListener('click', async event => {
     const button = (event.target as Element).closest<WaButton>('[data-price-button]')
     if (!button) return
 
-    if (window.sessionStorage.getItem('priceorder') === null) {
-      window.sessionStorage.setItem('priceorder', 'down')
-    }
-
-    let products = []
-
-    if (window.sessionStorage.getItem('priceorder') === 'down') {
-      products = await db.table('products').orderBy('price').toArray()
-      window.sessionStorage.setItem('priceorder', 'up')
-      console.log(window.sessionStorage.getItem('priceorder'))
-      renderTable(products)
-      return
-    }
-
-    if (window.sessionStorage.getItem('priceorder') === 'up') {
-      products = (await db.table('products').orderBy('price').toArray()).reverse()
-      window.sessionStorage.setItem('priceorder', 'down')
-      console.log(window.sessionStorage.getItem('priceorder'))
-      renderTable(products)
-      return
-    }
+    priceSort = priceSort === 'asc' ? 'desc' : 'asc'
+    await showProducts(db)
   })
-  await new Promise(resolve => setTimeout(resolve, 10000 - Math.random() * 500))
+  document.querySelector('[data-button-reset]')?.addEventListener('click', async () => {
+    query = ''
+    category = ''
+    priceSort = ''
+    const searchInput = document.querySelector<WaInput>('[data-name-search]')
+    if (searchInput) searchInput.value = ''
+    await showProducts(db)
+  })
   hideSpinny()
   const products = await syncFromAPI(db)
   if (products) {
-    renderTable(products)
+    await showProducts(db)
   }
 }
 // #endregion

@@ -1,9 +1,13 @@
-.products-2 {
-  min-height: 100vh;
-  transition: 300ms ease;
-  overflow: hidden;
+.products-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+}
 
-  margin-top: 74px;
+.products-2 {
+  transition: 300ms ease;
+  overflow: auto;
+
   display: grid;
   grid-template-areas: 'products';
 
@@ -73,10 +77,8 @@
 }
 
 .header {
-  position: fixed;
-  top: 0;
-  inset-inline: 0;
   height: 74px;
+  box-sizing: border-box;
   background-color: rgb(187, 187, 187);
   padding: 24px;
   color: rgb(39, 39, 39);

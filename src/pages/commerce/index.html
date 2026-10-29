@@ -1,48 +1,21 @@
-<section class="commerce">
-  <div
-    class="main"
-    data-main
-  ></div>
-  <div
-    class="modals"
-    data-modals
-  ></div>
-  <div
-    class="stats"
-    data-stats
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>commerce</title>
+  </head>
+  <body
+    class="commerce"
+    id="commerce"
   >
-    <button data-stats-back>Назад</button>
-    <div class="stats$grid">
-      <section
-        class="stats$volume"
-        data-stats-volume
-      >
-        <form>
-          <label>
-            <span>Выберите диапазон</span>
-            <input
-              type="date"
-              value="2026-09-24"
-              name="start-date"
-            />
-            <input
-              type="date"
-              value="2026-09-24"
-              name="end-date"
-            />
-          </label>
-          <button type="submit">Показать статистику</button>
-        </form>
-        <div data-stats-volume-panel></div>
-      </section>
-      <section
-        class="stats$top-products"
-        data-stats-products
-      ></section>
-      <section
-        class="stats$top-users"
-        data-stats-users
-      ></section>
-    </div>
-  </div>
-</section>
+    <div id="main"></div>
+    <script
+      type="module"
+      src="./index.ts"
+    ></script>
+  </body>
+</html>

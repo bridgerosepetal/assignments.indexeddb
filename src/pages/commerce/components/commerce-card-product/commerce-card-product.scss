@@ -1,0 +1,49 @@
+:host {
+  .commerce-card-product {
+    background-color: #e1e1e1;
+    padding: 8px;
+
+    &__inner {
+      display: grid;
+      grid-template-columns: minmax(0, 64px) minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+
+      padding: 8px;
+      user-select: none;
+
+      outline: 1px transparent solid;
+      outline-offset: 12px;
+      transition: 50ms;
+      background-color: #ffffe3;
+
+      &:hover {
+        outline: 2px #000 dashed;
+        outline-offset: -2px;
+      }
+
+      &:active {
+        outline-color: #fff;
+        background-color: #fff;
+      }
+    }
+
+    &__footer {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: 100%;
+      gap: 4px;
+    }
+
+    &__content {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+    }
+
+    &[is-alternate] {
+      background-color: #c3c3c3;
+    }
+  }
+}

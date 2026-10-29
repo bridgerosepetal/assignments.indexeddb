@@ -1,0 +1,5 @@
+@mixin bevel-border($color: #000) {
+  border: 2px solid $color;
+  border-bottom-width: 3px;
+  border-right-width: 3px;
+}
